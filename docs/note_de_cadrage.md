@@ -1,4 +1,4 @@
-# Note de cadrage — Pipeline CA & segmentation vins premium/ordinaires
+# Note de cadrage  Pipeline CA & segmentation vins premium/ordinaires
 
 ## Besoin métier
 Le Comptoir des Coteaux dispose de deux systèmes qui ne communiquent pas : l'ERP (prix,

@@ -17,3 +17,7 @@ venv/
 .env
 *.pem
 *.key
+env
+env/
+data/
+data
