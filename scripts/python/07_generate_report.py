@@ -1,15 +1,10 @@
 """
-Segmentation premium/ordinaire par z-score sur le prix.
+Génération du rapport Excel : chiffre d'affaires par produit + chiffre
+d'affaires total, sur une feuille dédiée.
 
-z = (prix - moyenne des prix) / écart-type des prix
-Un vin est premium si z > 2, ordinaire sinon.
-
-Ce script contient la seule logique statistique du pipeline (pandas) ;
-le reste (nettoyage, jointure, agrégation) reste en SQL/DuckDB.
-
-Usage : python 06_zscore_segmentation.py
+Usage : python 07_generate_report.py
 Entrée  : data/clean/ca_par_produit.csv
-Sorties : outputs/vins_premium.csv, outputs/vins_ordinaires.csv
+Sortie  : outputs/rapport_ca.xlsx
 """
 
 from pathlib import Path
@@ -27,28 +22,19 @@ def main() -> None:
         sys.exit(1)
 
     df = pd.read_csv(CLEAN_FILE)
-
-    mean_price = df["price"].mean()
-    std_price = df["price"].std()  # écart-type d'échantillon (ddof=1)
-
-    if std_price == 0 or pd.isna(std_price):
-        print(
-            "ERREUR : écart-type nul ou indéfini, z-score impossible.", file=sys.stderr
-        )
-        sys.exit(1)
-
-    df["z_score"] = (df["price"] - mean_price) / std_price
-
-    premium = df[df["z_score"] > 2].sort_values("price", ascending=False)
-    ordinaire = df[df["z_score"] <= 2].sort_values("price", ascending=False)
+    ca_total = round(df["ca_produit"].sum(), 2)
 
     OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
-    premium.to_csv(OUTPUTS_DIR / "vins_premium.csv", index=False)
-    ordinaire.to_csv(OUTPUTS_DIR / "vins_ordinaires.csv", index=False)
+    out_path = OUTPUTS_DIR / "rapport_ca.xlsx"
 
-    print(f"Moyenne des prix : {mean_price:.2f} € | Écart-type : {std_price:.2f} €")
-    print(f"Vins premium (z > 2) : {len(premium)}")
-    print(f"Vins ordinaires (z <= 2) : {len(ordinaire)}")
+    with pd.ExcelWriter(out_path, engine="openpyxl") as writer:
+        df.to_excel(writer, sheet_name="CA par produit", index=False)
+        pd.DataFrame([{"chiffre_affaires_total": ca_total}]).to_excel(
+            writer, sheet_name="CA total", index=False
+        )
+
+    print(f"Rapport généré : {out_path}")
+    print(f"Chiffre d'affaires total : {ca_total} €")
 
 
 if __name__ == "__main__":
