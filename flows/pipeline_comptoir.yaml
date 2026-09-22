@@ -1,0 +1,137 @@
+id: pipeline_comptoir
+namespace: comptoir.coteaux
+
+description: |
+  Pipeline mensuel du Comptoir des Coteaux : nettoyage des 3 exports (ERP,
+  liaison, web), jointure, calcul du chiffre d'affaires, segmentation
+  premium/ordinaire par z-score.
+  Kestra orchestre uniquement : toute la logique métier vit dans scripts/
+  (SQL DuckDB pour le nettoyage/jointure/agrégation, Python/pandas pour la
+  statistique). Les tâches de test seront ajoutées à l'étape 3.
+
+tasks:
+
+  - id: pipeline
+    type: io.kestra.plugin.core.flow.WorkingDirectory
+    description: |
+      Toutes les sous-tâches partagent le même répertoire de travail : les
+      fichiers du namespace (data/, scripts/) y sont copiés une fois, et
+      chaque sous-tâche peut lire les sorties de la précédente.
+    namespaceFiles:
+      enabled: true
+    tasks:
+
+      - id: convert_xlsx_to_csv
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas openpyxl
+          - python scripts/python/00_convert_xlsx_to_csv.py
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: clean_erp
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet duckdb
+          - python -c "import duckdb; duckdb.connect().execute(open('scripts/sql/01_clean_erp.sql').read())"
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: clean_liaison
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet duckdb
+          - python -c "import duckdb; duckdb.connect().execute(open('scripts/sql/02_clean_liaison.sql').read())"
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: clean_web
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet duckdb
+          - python -c "import duckdb; duckdb.connect().execute(open('scripts/sql/03_clean_web.sql').read())"
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: join_sources
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet duckdb
+          - python -c "import duckdb; duckdb.connect().execute(open('scripts/sql/04_join.sql').read())"
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: calc_ca
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet duckdb
+          - python -c "import duckdb; duckdb.connect().execute(open('scripts/sql/05_calc_ca.sql').read())"
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: zscore_segmentation
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/python/06_zscore_segmentation.py
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+      - id: generate_report
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas openpyxl
+          - python scripts/python/07_generate_report.py
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+
+    outputFiles:
+      - outputs/rapport_ca.xlsx
+      - outputs/vins_premium.csv
+      - outputs/vins_ordinaires.csv
+
+triggers:
+  - id: monthly_schedule
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 9 15 * *"
+    description: Le 15 de chaque mois à 9h.
