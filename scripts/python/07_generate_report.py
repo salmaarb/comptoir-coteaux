@@ -11,6 +11,7 @@ Usage : python 06_zscore_segmentation.py
 Entrée  : data/clean/ca_par_produit.csv
 Sorties : outputs/vins_premium.csv, outputs/vins_ordinaires.csv
 """
+
 from pathlib import Path
 import sys
 import pandas as pd
@@ -31,7 +32,9 @@ def main() -> None:
     std_price = df["price"].std()  # écart-type d'échantillon (ddof=1)
 
     if std_price == 0 or pd.isna(std_price):
-        print("ERREUR : écart-type nul ou indéfini, z-score impossible.", file=sys.stderr)
+        print(
+            "ERREUR : écart-type nul ou indéfini, z-score impossible.", file=sys.stderr
+        )
         sys.exit(1)
 
     df["z_score"] = (df["price"] - mean_price) / std_price

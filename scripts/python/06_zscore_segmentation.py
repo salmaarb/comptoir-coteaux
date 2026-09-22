@@ -1,41 +1,54 @@
 """
-Étape 0 du pipeline : conversion des exports Excel en CSV.
+Segmentation premium/ordinaire par z-score sur le prix.
 
-Kestra orchestre, il ne traite pas : ce script ne contient AUCUNE logique métier
-(pas de nettoyage, pas de filtre). Il se contente de rendre les 3 exports sources
-lisibles par DuckDB (SQL), qui ne lit pas nativement le format .xlsx hors ligne.
+z = (prix - moyenne des prix) / écart-type des prix
+Un vin est premium si z > 2, ordinaire sinon.
 
-Usage : python 00_convert_xlsx_to_csv.py
-Entrées  : data/Fichier_erp.xlsx, data/fichier_liaison.xlsx, data/Fichier_web.xlsx
-Sorties  : data/staging/erp_raw.csv, liaison_raw.csv, web_raw.csv
+Ce script contient la seule logique statistique du pipeline (pandas) ;
+le reste (nettoyage, jointure, agrégation) reste en SQL/DuckDB.
+
+Usage : python 06_zscore_segmentation.py
+Entrée  : data/clean/ca_par_produit.csv
+Sorties : outputs/vins_premium.csv, outputs/vins_ordinaires.csv
 """
-import sys
+
 from pathlib import Path
+import sys
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]  # racine du dépôt
-DATA_DIR = ROOT / "data"
-STAGING_DIR = DATA_DIR / "staging"
-
-SOURCES = {
-    "Fichier_erp.xlsx": "erp_raw.csv",
-    "fichier_liaison.xlsx": "liaison_raw.csv",
-    "Fichier_web.xlsx": "web_raw.csv",
-}
+ROOT = Path(__file__).resolve().parents[2]
+CLEAN_FILE = ROOT / "data" / "clean" / "ca_par_produit.csv"
+OUTPUTS_DIR = ROOT / "outputs"
 
 
 def main() -> None:
-    STAGING_DIR.mkdir(parents=True, exist_ok=True)
+    if not CLEAN_FILE.exists():
+        print(f"ERREUR : fichier introuvable : {CLEAN_FILE}", file=sys.stderr)
+        sys.exit(1)
 
-    for xlsx_name, csv_name in SOURCES.items():
-        src = DATA_DIR / xlsx_name
-        if not src.exists():
-            print(f"ERREUR : fichier source introuvable : {src}", file=sys.stderr)
-            sys.exit(1)
-        df = pd.read_excel(src)
-        dest = STAGING_DIR / csv_name
-        df.to_csv(dest, index=False)
-        print(f"OK : {xlsx_name} -> {dest} ({len(df)} lignes brutes)")
+    df = pd.read_csv(CLEAN_FILE)
+
+    mean_price = df["price"].mean()
+    std_price = df["price"].std()  # écart-type d'échantillon (ddof=1)
+
+    if std_price == 0 or pd.isna(std_price):
+        print(
+            "ERREUR : écart-type nul ou indéfini, z-score impossible.", file=sys.stderr
+        )
+        sys.exit(1)
+
+    df["z_score"] = (df["price"] - mean_price) / std_price
+
+    premium = df[df["z_score"] > 2].sort_values("price", ascending=False)
+    ordinaire = df[df["z_score"] <= 2].sort_values("price", ascending=False)
+
+    OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+    premium.to_csv(OUTPUTS_DIR / "vins_premium.csv", index=False)
+    ordinaire.to_csv(OUTPUTS_DIR / "vins_ordinaires.csv", index=False)
+
+    print(f"Moyenne des prix : {mean_price:.2f} € | Écart-type : {std_price:.2f} €")
+    print(f"Vins premium (z > 2) : {len(premium)}")
+    print(f"Vins ordinaires (z <= 2) : {len(ordinaire)}")
 
 
 if __name__ == "__main__":

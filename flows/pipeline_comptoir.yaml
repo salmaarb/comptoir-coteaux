@@ -7,7 +7,9 @@ description: |
   premium/ordinaire par z-score.
   Kestra orchestre uniquement : toute la logique métier vit dans scripts/
   (SQL DuckDB pour le nettoyage/jointure/agrégation, Python/pandas pour la
-  statistique). Les tâches de test seront ajoutées à l'étape 3.
+  statistique). Chaque tâche nominale est suivie de sa tâche de test
+  (scripts/tests/), qui vérifie les résultats contre les valeurs de
+  référence transmises par Octave.
 
 tasks:
 
@@ -47,6 +49,15 @@ tasks:
           maxAttempts: 3
           interval: PT30S
 
+      - id: test_erp
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/tests/test_clean_file.py data/clean/erp_clean.csv product_id product_id,price,stock_quantity,stock_status,onsale_web
+
       - id: clean_liaison
         type: io.kestra.plugin.scripts.shell.Commands
         taskRunner:
@@ -59,6 +70,15 @@ tasks:
           type: constant
           maxAttempts: 3
           interval: PT30S
+
+      - id: test_liaison
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/tests/test_clean_file.py data/clean/liaison_clean.csv product_id,id_web product_id,id_web
 
       - id: clean_web
         type: io.kestra.plugin.scripts.shell.Commands
@@ -73,6 +93,15 @@ tasks:
           maxAttempts: 3
           interval: PT30S
 
+      - id: test_web
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/tests/test_clean_file.py data/clean/web_clean.csv sku sku,total_sales
+
       - id: join_sources
         type: io.kestra.plugin.scripts.shell.Commands
         taskRunner:
@@ -85,6 +114,15 @@ tasks:
           type: constant
           maxAttempts: 3
           interval: PT30S
+
+      - id: test_join
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/tests/test_join_consistency.py
 
       - id: calc_ca
         type: io.kestra.plugin.scripts.shell.Commands
@@ -99,6 +137,15 @@ tasks:
           maxAttempts: 3
           interval: PT30S
 
+      - id: test_ca
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/tests/test_ca_consistency.py
+
       - id: zscore_segmentation
         type: io.kestra.plugin.scripts.python.Commands
         taskRunner:
@@ -111,6 +158,15 @@ tasks:
           type: constant
           maxAttempts: 3
           interval: PT30S
+
+      - id: test_zscore
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        commands:
+          - pip install --quiet pandas
+          - python scripts/tests/test_zscore.py
 
       - id: generate_report
         type: io.kestra.plugin.scripts.python.Commands

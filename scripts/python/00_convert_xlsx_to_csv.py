@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[2]  # racine du dépôt
 DATA_DIR = ROOT / "data"
 STAGING_DIR = DATA_DIR / "staging"
 CLEAN_DIR = DATA_DIR / "clean"
+
 SOURCES = {
     "Fichier_erp.xlsx": "erp_raw.csv",
     "fichier_liaison.xlsx": "liaison_raw.csv",
@@ -27,7 +28,10 @@ SOURCES = {
 
 def main() -> None:
     STAGING_DIR.mkdir(parents=True, exist_ok=True)
+    # Les scripts SQL suivants (01 à 05) écrivent leurs sorties dans data/clean/
+    # via COPY TO, or DuckDB ne crée pas ce dossier tout seul : on le prépare ici.
     CLEAN_DIR.mkdir(parents=True, exist_ok=True)
+
     for xlsx_name, csv_name in SOURCES.items():
         src = DATA_DIR / xlsx_name
         if not src.exists():
