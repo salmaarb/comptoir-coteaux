@@ -1,0 +1,19 @@
+# Docker / Kestra
+.kestra/
+docker-volumes/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Fichiers temporaires
+*.tmp
+*.log
+.DS_Store
+
+# Secrets (aucun ne doit être versionné, mais on se protège)
+.env
+*.pem
+*.key
