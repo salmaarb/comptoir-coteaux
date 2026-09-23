@@ -2,14 +2,10 @@
 
 ## Besoin métier
 Le Comptoir des Coteaux dispose de deux systèmes qui ne communiquent pas : l'ERP (prix,
-stocks) et le CMS de la boutique (ventes). Chaque mois, ce croisement était fait à la main par
-Octave, avec un risque d'erreur (cf. l'épisode des deux caisses). L'objectif est d'automatiser
-ce croisement pour produire, sans intervention humaine, le 15 de chaque mois : le chiffre
-d'affaires par produit et total, ainsi que les listes de vins premium et ordinaires destinées à
-Capucine et Théo pour leurs campagnes.
+stocks) et le CMS de la boutique (ventes). Chaque mois, ce croisement était fait à la main par Octave, avec un risque d'erreur (cf. l'épisode des deux caisses). L'objectif est d'automatiser ce croisement pour produire, sans intervention humaine, le 15 de chaque mois : le chiffre d'affaires par produit et total, ainsi que les listes de vins premium et ordinaires destinées à Capucine et Théo pour leurs campagnes.
 
 ## Périmètre technique retenu
-- Orchestration avec **Kestra** (imposé par la DSI), qui enchaîne les tâches mais ne contient
+- Orchestration avec **Kestra**, qui enchaîne les tâches mais ne contient
   aucune logique métier.
 - Traitements de nettoyage, jointure et agrégation en **SQL/DuckDB**.
 - Segmentation premium/ordinaire par z-score en **Python/pandas**.

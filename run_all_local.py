@@ -49,8 +49,8 @@ STEPS = [
             PY,
             "scripts/tests/test_clean_file.py",
             "data/clean/liaison_clean.csv",
-            "product_id,id_web",
-            "product_id,id_web",
+            "product_id",
+            "product_id",
         ],
     ),
     (

@@ -20,8 +20,8 @@ COPY (
             ROW_NUMBER() OVER (PARTITION BY id_web ORDER BY product_id) AS rn_id_web
         FROM read_csv_auto('data/staging/liaison_raw.csv')
         WHERE product_id IS NOT NULL
-          AND id_web IS NOT NULL
+         -- AND id_web IS NOT NULL
     )
     WHERE rn_product_id = 1
-      AND rn_id_web = 1
+     -- AND rn_id_web = 1
 ) TO 'data/clean/liaison_clean.csv' (HEADER, DELIMITER ',');
