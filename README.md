@@ -71,3 +71,29 @@ Voir `docs/logigramme.drawio` (éditable sur [app.diagrams.net](https://app.diag
 - `soutenance/` : support de présentation
 - `run_all_local.py` : lance tout le pipeline en local, hors Kestra, pour tester/déboguer
 - `docker-compose.yml` : Kestra  + Postgres
+
+## Bonus : Architecture hybride (PostgreSQL sur Neon)
+En fin de workflow, les 3 résultats (`ca_par_produit`, `vins_premium`, `vins_ordinaires`)sont aussi chargés dans une base **PostgreSQL managée (Neon)**, en plus des fichiers `.xlsx`/`.csv` habituels pour répondre au besoin de Capucine d'un futur tableau de bord, qui ne peut pas se brancher sur des fichiers déposés dans un dossier.
+
+
+**Tolérance de panne** : le chargement (`load_postgres`) et son test de cohérence
+(`test_postgres_consistency`) ont `retry` (3 tentatives) et `allowFailure: true`. Si Neon est injoignable après les tentatives, ces deux tâches restent en échec **sans** bloquer le reste du pipeline : Capucine et Théo reçoivent leurs fichiers le 15 à 9h, que Neon réponde ou non.
+
+### Mise en place 
+1. Créer un compte sur [neon.com](https://neon.com) (connexion possible avec GitHub) et un projet (ex. `comptoir-coteaux`), avec le service **Postgres database** activé.
+2. Récupérer la chaîne de connexion complète depuis le bouton **Connect** du projet(format `postgresql://user:password@host/dbname?sslmode=require`).
+3. Dans Kestra : **Admin → Namespaces → comptoir.coteaux → KV Store**, créer une entrée :
+   - Key : `NEON_CONNECTION_STRING`
+   - Type : `STRING`
+   - Value : la chaîne de connexion 
+4. Ajouter `scripts/python/load_postgres.py` et `scripts/tests/test_postgres_consistency.py`
+   dans l'onglet **Files** du flow (mêmes emplacements que les autres scripts).
+5. Exécuter le flow normalement : les tâches `load_postgres` et `test_postgres_consistency`
+   s'ajoutent en fin de chaîne, après `generate_report`.
+
+### Tables créées dans Neon
+| Table | Colonnes | Source |
+|---|---|---|
+| `ca_par_produit` | product_id, sku, nom_produit, price, total_sales, ca_produit | `data/clean/ca_par_produit.csv` |
+| `vins_premium` | + z_score | `outputs/vins_premium.csv` |
+| `vins_ordinaires` | + z_score | `outputs/vins_ordinaires.csv` |
