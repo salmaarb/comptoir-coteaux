@@ -78,7 +78,7 @@ tasks:
           image: python:3.11-slim
         commands:
           - pip install --quiet pandas
-          - python scripts/tests/test_clean_file.py data/clean/liaison_clean.csv product_id  product_id
+          - python scripts/tests/test_clean_file.py data/clean/liaison_clean.csv product_id,id_web product_id,id_web
 
       - id: clean_web
         type: io.kestra.plugin.scripts.shell.Commands
@@ -180,6 +180,36 @@ tasks:
           type: constant
           maxAttempts: 3
           interval: PT30S
+
+      # --- Bonus : architecture hybride, chargement dans PostgreSQL (Neon) ---
+   
+      - id: load_postgres
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        env:
+          NEON_CONNECTION_STRING: "{{ kv('NEON_CONNECTION_STRING') }}"
+        commands:
+          - pip install --quiet duckdb
+          - python scripts/python/load_to_postgres.py
+        retry:
+          type: constant
+          maxAttempts: 3
+          interval: PT30S
+        allowFailure: true
+
+      - id: test_postgres_consistency
+        type: io.kestra.plugin.scripts.python.Commands
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+          image: python:3.11-slim
+        env:
+          NEON_CONNECTION_STRING: "{{ kv('NEON_CONNECTION_STRING') }}"
+        commands:
+          - pip install --quiet duckdb
+          - python scripts/tests/test_postgres_consistency.py
+        allowFailure: true
 
     outputFiles:
       - outputs/rapport_ca.xlsx
