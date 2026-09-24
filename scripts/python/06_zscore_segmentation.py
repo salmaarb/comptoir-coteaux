@@ -3,10 +3,6 @@ Segmentation premium/ordinaire par z-score sur le prix.
 
 z = (prix - moyenne des prix) / écart-type des prix
 Un vin est premium si z > 2, ordinaire sinon.
-
-Ce script contient la seule logique statistique du pipeline (pandas) ;
-le reste (nettoyage, jointure, agrégation) reste en SQL/DuckDB.
-
 Usage : python 06_zscore_segmentation.py
 Entrée  : data/clean/ca_par_produit.csv
 Sorties : outputs/vins_premium.csv, outputs/vins_ordinaires.csv

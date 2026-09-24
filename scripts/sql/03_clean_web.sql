@@ -19,7 +19,7 @@ COPY (
         SELECT
             *,
             ROW_NUMBER() OVER (PARTITION BY sku ORDER BY sku) AS rn
-        FROM read_csv_auto('data/staging/web_raw.csv')
+        FROM read_csv_auto('data/brut/web_brut.csv')
         WHERE sku IS NOT NULL
           AND post_type = 'product'
     )

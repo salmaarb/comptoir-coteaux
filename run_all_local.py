@@ -1,9 +1,6 @@
 """
 Lance tout le pipeline localement, dans l'ordre, sans passer par Kestra.
-Pratique pour tester/déboguer avant de pousser vers l'orchestrateur.
 
-Usage : python run_all_local.py
-À exécuter depuis la racine du dépôt (comptoir-coteaux/).
 """
 
 import subprocess
@@ -16,8 +13,7 @@ PY = (
     sys.executable
 )  # même interpréteur que celui qui lance ce script (évite tout conflit pyenv/venv)
 
-# Couleurs ANSI (fonctionnent dans PowerShell moderne, VS Code, et la
-# plupart des terminaux ; sans effet si le terminal ne les supporte pas).
+
 GREEN = "\033[92m"
 RED = "\033[91m"
 BOLD = "\033[1m"
@@ -109,7 +105,7 @@ def main() -> None:
     history = []  # (label, ok: bool, duration: float)
     pipeline_start = time.time()
 
-    print(f"\n{BOLD}Pipeline Comptoir des Coteaux — {total} étapes{RESET}\n")
+    print(f"\n{BOLD}Pipeline Comptoir des Coteaux {total} étapes{RESET}\n")
 
     for i, (label, cmd) in enumerate(STEPS, start=1):
         prefix = f"[{i}/{total}]"

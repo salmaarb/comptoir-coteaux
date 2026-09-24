@@ -18,7 +18,7 @@ COPY (
             *,
             ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY product_id) AS rn_product_id,
             ROW_NUMBER() OVER (PARTITION BY id_web ORDER BY product_id) AS rn_id_web
-        FROM read_csv_auto('data/staging/liaison_raw.csv')
+        FROM read_csv_auto('data/brut/liaison_brut.csv')
         WHERE product_id IS NOT NULL
          -- AND id_web IS NOT NULL
     )

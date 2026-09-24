@@ -9,7 +9,7 @@ COPY (
         SELECT
             *,
             ROW_NUMBER() OVER (PARTITION BY product_id ORDER BY product_id) AS rn
-        FROM read_csv_auto('data/staging/erp_raw.csv')
+        FROM read_csv_auto('data/brut/erp_brut.csv')
         WHERE product_id IS NOT NULL
           AND onsale_web IS NOT NULL
           AND price IS NOT NULL

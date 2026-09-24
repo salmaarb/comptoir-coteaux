@@ -10,18 +10,18 @@ product_id,sku,nom_produit,price,total_sales,ca_produit,z_score
 4355,12589,Champagne Egly-Ouriet Grand Cru Blanc de Noirs,126.5,11.0,1391.5,3.380262077312969
 5612,14915,Domaine Weinbach Gewurztraminer Grand Cru Furstentum SGN 2010 1/2,124.8,0.0,0.0,3.3191341408663115
 5917,14775,Wemyss Malts Single Cask Scotch Whisky Choc 'n' Nut Pretzel 2001 Bunnahabhain,122.0,0.0,0.0,3.218452833777698
-6213,15072,Domaine des Comtes Lafon Volnay 1er Cru Santenots du Milieu 2016,121.0,0.0,0.0,3.182495224103193
 6216,15070,Domaine des Comtes Lafon Volnay 1er Cru Champans 2016,121.0,0.0,0.0,3.182495224103193
+6213,15072,Domaine des Comtes Lafon Volnay 1er Cru Santenots du Milieu 2016,121.0,0.0,0.0,3.182495224103193
 6202,15126,Domaine Clerget Echezeaux Grand Cru En Orveaux 2015,116.4,0.0,0.0,3.017090219600472
-6215,12790,Domaine des Comtes Lafon Volnay 1er Cru Champans 2014,115.0,0.0,0.0,2.9667495660561656
 6212,13996,Domaine des Comtes Lafon Volnay 1er Cru Santenots du Milieu 2015,115.0,2.0,230.0,2.9667495660561656
+6215,12790,Domaine des Comtes Lafon Volnay 1er Cru Champans 2014,115.0,0.0,0.0,2.9667495660561656
 5918,14773,Wemyss Malts Single Cask Scotch Whisky Chai Caramel Latte 2002 Craigellachie,114.0,0.0,0.0,2.9307919563816607
 5025,13914,Champagne Agrapart &amp; Fils L'Avizoise Extra Brut Blanc de Blancs Grand Cru 2012,112.0,0.0,0.0,2.8588767370326513
 4582,12857,Château de Meursault Puligny-Montrachet 1er Cru Champ Canet 2014,109.6,0.0,0.0,2.77257847381384
 4404,3507,Cognac Frapin Château de Fontpinot XO,108.5,2.0,217.0,2.733025103171885
 6201,14596,David Duband Chambolle-Musigny 1er Cru Les Sentiers 2016,105.6,0.0,0.0,2.6287480351158212
-5008,11602,Domaine des Comtes Lafon Volnay 1er Cru Santenots du Milieu 2013,105.0,0.0,0.0,2.607173469311119
 5007,12791,Domaine des Comtes Lafon Volnay 1er Cru Santenots du Milieu 2014,105.0,0.0,0.0,2.607173469311119
+5008,11602,Domaine des Comtes Lafon Volnay 1er Cru Santenots du Milieu 2013,105.0,0.0,0.0,2.607173469311119
 4407,3509,Cognac Frapin Cigar Blend,104.0,1.0,104.0,2.571215859636614
 4903,14805,Domaine Des Croix Corton Grand Cru Les Grèves 2017,102.3,0.0,0.0,2.5100879231899564
 4115,15382,Zind-Humbrecht Riesling Grand Cru Rangen De Thann Clos Saint-Urbain 2017,100.0,0.0,0.0,2.427385420938595
