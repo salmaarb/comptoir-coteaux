@@ -193,7 +193,7 @@ tasks:
           NEON_CONNECTION_STRING: "{{ kv('NEON_CONNECTION_STRING') }}"
         commands:
           - pip install --quiet duckdb
-          - python scripts/python/load_postgres.py
+          - python scripts/python/load_to_postgres.py
         retry:
           type: constant
           maxAttempts: 3
