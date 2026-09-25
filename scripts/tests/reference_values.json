@@ -1,0 +1,9 @@
+{
+  "_comment": "Valeurs de référence pour valider le pipeline sur un jeu de données précis. À mettre à jour à chaque nouveau mois de données (mettre à null pour désactiver une vérification si la valeur n'est pas connue à l'avance).",
+  "_source": "Aucune valeur figée actuellement : le pipeline se contente des vérifications internes (formules, cohérence), valable pour n'importe quel mois.",
+  "_exemple_mois1_octave": "Pour revérifier contre le jeu d'Octave : web_clean_rows_expected=714, ca_total_expected=70568.60, premium_count_expected=30",
+  "_exemple_mois2_test": "Pour revérifier contre le jeu de test du abdel : web_clean_rows_expected=48, ca_total_expected=5443.70, premium_count_expected=3",
+  "web_clean_rows_expected": null,
+  "ca_total_expected": null,
+  "premium_count_expected": null
+}

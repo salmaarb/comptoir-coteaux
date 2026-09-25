@@ -1,12 +1,7 @@
 """
-Test générique (familles 1 et 2) : absence de doublons sur la/les clé(s)
-primaire(s), et absence de valeurs manquantes sur les colonnes critiques.
+Test générique (familles 1 et 2) : absence de doublons sur les clés
+primaires, et absence de valeurs manquantes sur les colonnes critiques.
 
-Usage :
-    python test_clean_file.py <chemin_csv> <colonnes_cle_separees_par_virgule> <colonnes_requises_separees_par_virgule>
-
-Exemple :
-    python test_clean_file.py data/clean/erp_clean.csv product_id product_id,price,stock_quantity
 """
 
 import sys

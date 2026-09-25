@@ -1,18 +1,10 @@
 """
 Test de cohérence entre PostgreSQL (Neon) et les fichiers locaux.
 
-Vérifie que les 3 tables chargées dans Neon contiennent exactement les mêmes
-données que les fichiers .csv produits par le pipeline : mêmes nombres de
-lignes, même chiffre d'affaires total, même nombre de vins premium.
-
-Comme le chargement Postgres est volontairement tolérant aux pannes
-(allowFailure: true côté Kestra), ce test peut lui aussi échouer sans
-bloquer la livraison des fichiers à Capucine et Théo : il sert d'alerte de
-cohérence, pas de verrou sur le pipeline.
-
 
 """
 
+import json
 import os
 import sys
 from pathlib import Path
@@ -22,13 +14,19 @@ ROOT = Path(__file__).resolve().parents[2]
 CA_CSV = ROOT / "data" / "clean" / "ca_par_produit.csv"
 PREMIUM_CSV = ROOT / "outputs" / "vins_premium.csv"
 ORDINAIRE_CSV = ROOT / "outputs" / "vins_ordinaires.csv"
+REF_FILE = Path(__file__).resolve().parent / "reference_values.json"
 
-CA_TOTAL_REF = 70568.60
-PREMIUM_COUNT_REF = 30
 TOLERANCE = 0.01
 
 BASE_COLUMNS = "{'product_id': 'BIGINT', 'sku': 'VARCHAR', 'nom_produit': 'VARCHAR', 'price': 'DOUBLE', 'total_sales': 'BIGINT', 'ca_produit': 'DOUBLE'}"
 ZSCORE_COLUMNS = "{'product_id': 'BIGINT', 'sku': 'VARCHAR', 'nom_produit': 'VARCHAR', 'price': 'DOUBLE', 'total_sales': 'BIGINT', 'ca_produit': 'DOUBLE', 'z_score': 'DOUBLE'}"
+
+
+def load_reference(key: str):
+    if not REF_FILE.exists():
+        return None
+    with open(REF_FILE) as f:
+        return json.load(f).get(key)
 
 
 def get_connection_string() -> str:
@@ -70,19 +68,26 @@ def main() -> None:
     remote_total = con.execute(
         "SELECT ROUND(SUM(ca_produit), 2) FROM neon.ca_par_produit"
     ).fetchone()[0]
-    if remote_total is None or abs(remote_total - CA_TOTAL_REF) > TOLERANCE:
+    ca_total_ref = load_reference("ca_total_expected")
+    if ca_total_ref is not None and (
+        remote_total is None or abs(remote_total - ca_total_ref) > TOLERANCE
+    ):
         errors.append(
-            f"CA total dans Neon = {remote_total} €, attendu {CA_TOTAL_REF} €"
+            f"CA total dans Neon = {remote_total} €, attendu {ca_total_ref} € (valeur de référence)"
         )
 
     local_premium = con.execute(
         f"SELECT COUNT(*) FROM read_csv('{PREMIUM_CSV}', columns={ZSCORE_COLUMNS}, header=true)"
     ).fetchone()[0]
     remote_premium = con.execute("SELECT COUNT(*) FROM neon.vins_premium").fetchone()[0]
-    if local_premium != remote_premium or remote_premium != PREMIUM_COUNT_REF:
+    if local_premium != remote_premium:
         errors.append(
-            f"vins_premium : {local_premium} lignes en local, {remote_premium} dans Neon, "
-            f"attendu {PREMIUM_COUNT_REF}"
+            f"vins_premium : {local_premium} lignes en local vs {remote_premium} dans Neon"
+        )
+    premium_ref = load_reference("premium_count_expected")
+    if premium_ref is not None and remote_premium != premium_ref:
+        errors.append(
+            f"{remote_premium} vin(s) premium dans Neon, attendu {premium_ref} (valeur de référence)"
         )
 
     local_ordinaire = con.execute(

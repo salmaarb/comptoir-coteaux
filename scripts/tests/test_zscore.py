@@ -2,20 +2,21 @@
 Test (famille 5) : cohérence du z-score sur le prix et de la segmentation
 premium/ordinaire.
 
-Vérifie que :
-  - tous les vins de vins_premium.csv ont bien z > 2 (recalculé indépendamment),
-  - tous les vins de vins_ordinaires.csv ont bien z <= 2,
-  - la somme des deux fichiers correspond au nombre total de vins,
-  - le nombre de vins premium correspond à la valeur de référence d'Octave (30).
-
-La constante PREMIUM_COUNT_REF vient des chiffres transmis par Octave sur ce
-jeu de données précis ; à ajuster si les exports source changent.
 """
 
+import json
 import sys
+from pathlib import Path
 import pandas as pd
 
-PREMIUM_COUNT_REF = 30
+REF_FILE = Path(__file__).resolve().parent / "reference_values.json"
+
+
+def load_reference(key: str):
+    if not REF_FILE.exists():
+        return None
+    with open(REF_FILE) as f:
+        return json.load(f).get(key)
 
 
 def main() -> None:
@@ -53,9 +54,10 @@ def main() -> None:
             f"premium ({len(premium)}) + ordinaire ({len(ordinaire)}) != total ({len(ca)})"
         )
 
-    if len(premium) != PREMIUM_COUNT_REF:
+    premium_ref = load_reference("premium_count_expected")
+    if premium_ref is not None and len(premium) != premium_ref:
         errors.append(
-            f"{len(premium)} vin(s) premium détecté(s), attendu {PREMIUM_COUNT_REF} (référence Octave)"
+            f"{len(premium)} vin(s) premium détecté(s), attendu {premium_ref} (valeur de référence)"
         )
 
     if errors:
@@ -63,8 +65,13 @@ def main() -> None:
             print(f"ERREUR : {e}", file=sys.stderr)
         sys.exit(1)
 
+    ref_note = (
+        f" (référence {premium_ref} confirmée)"
+        if premium_ref is not None
+        else " (aucune valeur de référence fournie, vérification interne uniquement)"
+    )
     print(
-        f"OK : {len(premium)} vins premium, {len(ordinaire)} vins ordinaires, z-score cohérent."
+        f"OK : {len(premium)} vins premium, {len(ordinaire)} vins ordinaires, z-score cohérent.{ref_note}"
     )
 
 

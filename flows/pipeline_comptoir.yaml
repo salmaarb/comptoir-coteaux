@@ -2,7 +2,16 @@ id: pipeline_comptoir
 namespace: comptoir.coteaux
 
 description: |
-  Pipeline mensuel du Comptoir des Coteaux
+  Pipeline mensuel du Comptoir des Coteaux : nettoyage des 3 exports (ERP,
+  liaison, web), jointure, calcul du chiffre d'affaires, segmentation
+  premium/ordinaire par z-score.
+  Kestra orchestre uniquement : toute la logique métier vit dans scripts/
+  (SQL DuckDB pour le nettoyage/jointure/agrégation, Python/pandas pour la
+  statistique). Chaque tâche nominale est suivie de sa tâche de test
+  (scripts/tests/), qui vérifie la cohérence des résultats et, si des valeurs
+  de référence sont renseignées dans reference_values.json, les compare à
+  ces valeurs — le pipeline fonctionne pour n'importe quel mois de données.
+
 tasks:
 
   - id: pipeline
@@ -174,7 +183,7 @@ tasks:
           interval: PT30S
 
       # --- Bonus : architecture hybride, chargement dans PostgreSQL (Neon) ---
-   
+
       - id: load_postgres
         type: io.kestra.plugin.scripts.python.Commands
         taskRunner:
@@ -184,7 +193,7 @@ tasks:
           NEON_CONNECTION_STRING: "{{ kv('NEON_CONNECTION_STRING') }}"
         commands:
           - pip install --quiet duckdb
-          - python scripts/python/load_to_postgres.py
+          - python scripts/python/load_postgres.py
         retry:
           type: constant
           maxAttempts: 3

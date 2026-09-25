@@ -1,20 +1,21 @@
 """
 Test (famille 3) : cohérence de la jointure ERP ⋈ Liaison ⋈ Web.
 
-Vérifie que :
-  - le fichier fusionné n'a aucune valeur manquante sur les colonnes clés,
-  - son nombre de lignes correspond au fichier le plus restrictif des trois
-    (le web, qui pilote la jointure) et à la valeur de référence d'Octave.
-
-La valeur de référence (WEB_CLEAN_REF_ROWS = 714) vient des chiffres
-transmis par Octave sur ce jeu de données précis ; si les exports source
-changent de volumétrie, ajustez cette constante en conséquence.
 """
 
+import json
 import sys
+from pathlib import Path
 import pandas as pd
 
-WEB_CLEAN_REF_ROWS = 714
+REF_FILE = Path(__file__).resolve().parent / "reference_values.json"
+
+
+def load_reference(key: str):
+    if not REF_FILE.exists():
+        return None
+    with open(REF_FILE) as f:
+        return json.load(f).get(key)
 
 
 def main() -> None:
@@ -38,10 +39,11 @@ def main() -> None:
             "la jointure a perdu ou dupliqué des lignes de façon inattendue."
         )
 
-    if len(fusion) != WEB_CLEAN_REF_ROWS:
+    web_rows_ref = load_reference("web_clean_rows_expected")
+    if web_rows_ref is not None and len(fusion) != web_rows_ref:
         errors.append(
             f"Le fichier fusionné a {len(fusion)} lignes, "
-            f"attendu {WEB_CLEAN_REF_ROWS} d'après les valeurs de référence d'Octave."
+            f"attendu {web_rows_ref} (valeur de référence)."
         )
 
     if fusion["sku"].duplicated().sum() > 0:
@@ -54,9 +56,12 @@ def main() -> None:
             print(f"ERREUR : {e}", file=sys.stderr)
         sys.exit(1)
 
-    print(
-        f"OK : jointure cohérente, {len(fusion)} lignes, aucune valeur manquante sur les colonnes clés."
+    ref_note = (
+        f" (référence {web_rows_ref} confirmée)"
+        if web_rows_ref is not None
+        else " (aucune valeur de référence fournie, vérification interne uniquement)"
     )
+    print(f"OK : jointure cohérente, {len(fusion)} lignes.{ref_note}")
 
 
 if __name__ == "__main__":
