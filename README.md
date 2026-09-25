@@ -35,8 +35,7 @@ Toutes les valeurs ci-dessous ont été vérifiées, en local et dans Kestra, co
 | Web après nettoyage (lignes vides supprimées) | 1 428 | **1 428**|
 | Web après dédoublonnage | 714 | **714** |
 | Fichier fusionné | 714 | **714** |
-| Chiffre d'affaires total | 70 568,60 € | **70 568,60 €** 
-|
+| Chiffre d'affaires total | 70 568,60 € | **70 568,60 €** |
 | Vins premium détectés (z > 2) | 30 | **30**  |
 
 
