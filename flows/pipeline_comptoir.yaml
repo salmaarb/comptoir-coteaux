@@ -2,15 +2,7 @@ id: pipeline_comptoir
 namespace: comptoir.coteaux
 
 description: |
-  Pipeline mensuel du Comptoir des Coteaux : nettoyage des 3 exports (ERP,
-  liaison, web), jointure, calcul du chiffre d'affaires, segmentation
-  premium/ordinaire par z-score.
-  Kestra orchestre uniquement : toute la logique métier vit dans scripts/
-  (SQL DuckDB pour le nettoyage/jointure/agrégation, Python/pandas pour la
-  statistique). Chaque tâche nominale est suivie de sa tâche de test
-  (scripts/tests/), qui vérifie les résultats contre les valeurs de
-  référence transmises par Octave.
-
+  Pipeline mensuel du Comptoir des Coteaux
 tasks:
 
   - id: pipeline
